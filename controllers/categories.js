@@ -9,7 +9,7 @@ module.exports.getById = async (req, res) => {
 }
 
 module.exports.create = async (req, res) => {
-    const { id } = req.params
+    console.log(req.body)
 
     res.send("[Category] INSERT " + id)
 }

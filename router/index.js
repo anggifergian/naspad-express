@@ -14,8 +14,8 @@ const category = require('../controllers/categories')
  */
 router.get('/products', product.getAll)
 router.get('/products/:id', product.getById)
+router.post('/products', product.create)
 router.put('/products/:id', product.update)
-router.post('/products/:id', product.create)
 router.delete('/products/:id', product.delete)
 
 /**
@@ -23,8 +23,8 @@ router.delete('/products/:id', product.delete)
  */
  router.get('/categories', category.getAll)
  router.get('/categories/:id', category.getById)
+ router.post('/categories', category.create)
  router.put('/categories/:id', category.update)
- router.post('/categories/:id', category.create)
  router.delete('/categories/:id', category.delete)
 
 module.exports = router
