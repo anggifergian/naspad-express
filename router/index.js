@@ -6,8 +6,8 @@
 const express = require('express')
 const router = express.Router()
 
-const product = require('../app/controllers/products')
-const category = require('../app/controllers/categories')
+const product = require('../controllers/products')
+const category = require('../controllers/categories')
 
 /**
  * Product routes.
