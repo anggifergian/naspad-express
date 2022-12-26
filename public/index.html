@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Simple Chat App</title>
+        <link rel="stylesheet" href="./style.css">
+    </head>
+    <body>
+        <div class="container">
+            <div class="inbox">
+                <div class="inbox__people">
+                    <h4>Active users</h4>
+                </div>
+                <div class="inbox__messages">
+                    <div class="messages__history"></div>
+                    <div class="fallback"></div>
+                </div>
+            </div>
+
+            <form class="message_form">
+                <input type="text" name="chatInput" id="chatInput" class="message_form__input" placeholder="Type a message" />
+                <button class="message_form__button" type="submit">Enter</button>
+            </form>
+        </div>
+
+        <script src="main.js"></script>
+    </body>
+</html>
