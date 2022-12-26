@@ -2,6 +2,15 @@
 
 const mongoose = require('mongoose')
 const moment = require('moment')
+const Joi = require('joi');
+
+function validateCategory(data) {
+    const schema = Joi.object({
+        name: Joi.string().alphanum().min(3).max(30).required(),
+    });
+
+    return schema.validate(data);
+}
 
 const { Schema } = mongoose
 
@@ -20,5 +29,6 @@ const categorySchema = new Schema({
 const Category = mongoose.model("Category", categorySchema)
 
 module.exports = {
-    Category
+    Category,
+    validateCategory,
 }
