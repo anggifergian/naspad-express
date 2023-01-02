@@ -1,27 +1,21 @@
-module.exports.getAll = async (req, res) => {
-    res.send("[Product] getAll")
-}
+const express = require('express');
+const router = express.Router();
 
-module.exports.getById = async (req, res) => {
-    const { id } = req.params
+const products = [
+    { id: 1, name: 'Iphone 14' },
+    { id: 2, name: 'Iphone 14 Pro' },
+    { id: 3, name: 'Iphone 14 Pro Max' },
+    { id: 4, name: 'Iphone 13' },
+    { id: 5, name: 'Iphone 13 Mini' },
+    { id: 6, name: 'Iphone 13 Pro' },
+];
 
-    res.send("[Product] getById " + id)
-}
+router.get('/', (req, res) => {
+    res.send({
+        success: true,
+        message: 'Data found',
+        data: products
+    })
+})
 
-module.exports.create = async (req, res) => {
-    console.log(req.body)
-
-    res.send("[Product] INSERT " + id)
-}
-
-module.exports.update = async (req, res) => {
-    const { id } = req.params
-
-    res.send("[Product] UPDATE " + id)
-}
-
-module.exports.delete = async (req, res) => {
-    const { id } = req.params
-    
-    res.send("[Product] DELETE " + id)
-}
+module.exports = router;
