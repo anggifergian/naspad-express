@@ -1,0 +1,6 @@
+{
+    "name": "Feedly - Production",
+    "mail": {
+        "host": "prod-mail-service"
+    }
+}

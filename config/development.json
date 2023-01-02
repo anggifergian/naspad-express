@@ -1,0 +1,6 @@
+{
+    "name": "Feedly - Development",
+    "mail": {
+        "host": "dev-mail-service"
+    }
+}
