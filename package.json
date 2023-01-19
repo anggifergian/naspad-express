@@ -4,7 +4,7 @@
   "description": "This README would normally document whatever steps are necessary to get your application up and running.",
   "main": "server.js",
   "scripts": {
-    "start": "DEBUG=app:startup nodemon server.js"
+    "start": "DEBUG=app:startup,app:socket,app:mongod nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -26,9 +26,9 @@
     "helmet": "^6.0.0",
     "joi": "^17.7.0",
     "moment": "^2.29.4",
-    "mongoose": "^6.5.2",
+    "mongoose": "^6.8.4",
     "morgan": "^1.10.0",
-    "socket.io": "^4.5.3"
+    "socket.io": "^4.5.4"
   },
   "devDependencies": {
     "nodemon": "^2.0.19"
