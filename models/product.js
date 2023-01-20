@@ -18,6 +18,7 @@ const Product = mongoose.model('Product', new mongoose.Schema({
     },
     imageUrl: {
         type: String,
+        default: '',
     },
     createdAt: {
         type: Date,
