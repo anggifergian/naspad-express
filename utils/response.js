@@ -1,4 +1,4 @@
-module.exports.sendResponse = function sendResponse(res, opt) {
+module.exports.sendResponse = function (res, opt) {
     if (opt['statusCode'] || (opt['statusCode'] && opt['statusCode'] !== 200)) {
         return res
             .status(opt['statusCode'])
@@ -9,4 +9,8 @@ module.exports.sendResponse = function sendResponse(res, opt) {
     }
 
     return res.send({ 'success': true, ...opt });
+}
+
+module.exports.modify = function (value) {
+    return String(value).replace(/\"/g, '');
 }
