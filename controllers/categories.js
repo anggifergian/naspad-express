@@ -62,6 +62,12 @@ router.put('/:id', async (req, res) => {
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
 
+        const { error } = validateCategory(req.body);
+        if (error) {
+            const errMessage = error.details[0].message.replace(/\"/g, '');
+            return sendResponse(res, { statusCode: 400, message: errMessage });
+        }
+
         const category = await Category.findByIdAndUpdate(id,
             { $set: { name: req['body']['name'] } },
             { new: true });
@@ -69,12 +75,6 @@ router.put('/:id', async (req, res) => {
         if (!category) {
             const errMessage = 'The category with the given ID was not found.';
             return sendResponse(res, { statusCode: 404, message: errMessage });
-        }
-
-        const { error } = validateCategory(req.body);
-        if (error) {
-            const errMessage = error.details[0].message.replace(/\"/g, '');
-            return sendResponse(res, { statusCode: 400, message: errMessage });
         }
 
         sendResponse(res, { message: 'Data updated', data: category, });
