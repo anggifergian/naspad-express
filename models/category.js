@@ -1,32 +1,30 @@
-"use strict"
+"use strict";
 
 const mongoose = require('mongoose')
 const moment = require('moment')
 const Joi = require('joi');
 
-function validateCategory(data) {
-    const schema = Joi.object({
-        name: Joi.string().alphanum().min(3).max(30).required(),
-    });
-
-    return schema.validate(data);
-}
-
-const { Schema } = mongoose
-
-const categorySchema = new Schema({
+const Category = mongoose.model("Category", new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        minlength: 5,
+        maxlength: 55,
     },
     createdAt: {
         type: Date,
         required: true,
         default: moment().format("YYYY-MM-DD, HH:mm:ss")
     }
-})
+}));
 
-const Category = mongoose.model("Category", categorySchema)
+function validateCategory(data) {
+    const schema = Joi.object({
+        name: Joi.string().min(5).max(55).required(),
+    });
+
+    return schema.validate(data);
+}
 
 module.exports = {
     Category,
