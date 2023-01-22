@@ -1,10 +1,14 @@
 module.exports.sendResponse = function (res, opt) {
     if (opt['statusCode'] || (opt['statusCode'] && opt['statusCode'] !== 200)) {
+        let status = opt['statusCode'];
+        delete opt['statusCode'];
+        
         return res
-            .status(opt['statusCode'])
+            .status(status)
             .send({
                 'success': false,
-                'message': opt['message']
+                'message': opt['message'],
+                ...opt,
             });
     }
 
