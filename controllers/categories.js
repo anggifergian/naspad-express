@@ -87,6 +87,9 @@ router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
+        // NOTE
+        // Need to check first about related Product that have selected category
+
         if (!isValidID(id)) {
             const errMessage = 'Please input valid ID.';
             return sendResponse(res, { statusCode: 400, message: errMessage });
