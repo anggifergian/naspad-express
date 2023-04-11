@@ -3,13 +3,13 @@ const router = express.Router();
 
 const { validateCategory, Category } = require('../models/category');
 const { sendResponse } = require('../utils/response');
-const { isValidID } = require('../utils/mongoose');
+const { checkValidUUID } = require('../utils/mongoose');
 
 router.get('/', async (req, res) => {
     try {
         const categories = await Category.find().sort('-createdAt').limit(10).select('name');
 
-        sendResponse(res, { message: 'Data found', data: categories });
+        sendResponse(res, { message: categories.length > 0 ? 'Data found' : 'Empty list', data: categories });
     } catch (error) {
         sendResponse(res, { statusCode: 500, message: error['message'] });
     }
@@ -19,7 +19,7 @@ router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        if (!isValidID(id)) {
+        if (!checkValidUUID(id)) {
             const errMessage = 'Please input valid ID.';
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
@@ -57,7 +57,7 @@ router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        if (!isValidID(id)) {
+        if (!checkValidUUID(id)) {
             const errMessage = 'Please input valid ID.';
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
@@ -90,7 +90,7 @@ router.delete('/:id', async (req, res) => {
         // NOTE
         // Need to check first about related Product that have selected category
 
-        if (!isValidID(id)) {
+        if (!checkValidUUID(id)) {
             const errMessage = 'Please input valid ID.';
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }

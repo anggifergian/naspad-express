@@ -1,9 +1,9 @@
 const express = require('express');
-const { Category } = require('../models/category');
 const router = express.Router();
 
 const { Product, validateProduct, mapCategories, compareCategories } = require('../models/product');
-const { isValidID } = require('../utils/mongoose');
+const { Category } = require('../models/category');
+const { checkValidUUID } = require('../utils/mongoose');
 const { sendResponse, modify } = require('../utils/response');
 
 router.get('/', async (req, res) => {
@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
             .select('title price categories')
             .limit(10);
 
-        sendResponse(res, { message: 'Data found', data: products });
+        sendResponse(res, { message: products.length > 0 ? 'Data found' : 'Empty list', data: products });
     } catch (error) {
         sendResponse(res, { statusCode: 500, message: error['message'] });
     }
@@ -25,7 +25,7 @@ router.get('/:id', async (req, res) => {
     try {
         const { id } = req['params'];
 
-        if (!isValidID(id)) {
+        if (!checkValidUUID(id)) {
             const errMessage = 'Please input valid ID.';
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
@@ -87,7 +87,7 @@ router.put('/:id', async (req, res) => {
     try {
         const { id } = req['params'];
 
-        if (!isValidID(id)) {
+        if (!checkValidUUID(id)) {
             const errMessage = 'Please input valid ID.';
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
@@ -136,7 +136,7 @@ router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        if (!isValidID(id)) {
+        if (!checkValidUUID(id)) {
             const errMessage = 'Please input valid ID.';
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
