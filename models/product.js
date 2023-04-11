@@ -3,16 +3,11 @@
 const mongoose = require('mongoose');
 const moment = require('moment');
 const Joi = require('joi');
-const { v4: uuidv4 } = require('uuid')
 
 const min_title_length = 3;
 const max_title_length = 255;
 
 const Product = mongoose.model('Product', new mongoose.Schema({
-    _id: {
-        type: String,
-        default: uuidv4
-    },
     title: {
         type: String,
         required: true,

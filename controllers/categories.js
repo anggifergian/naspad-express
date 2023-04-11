@@ -3,7 +3,7 @@ const router = express.Router();
 
 const { validateCategory, Category } = require('../models/category');
 const { sendResponse } = require('../utils/response');
-const { checkValidUUID } = require('../utils/mongoose');
+const { isValidID } = require('../utils/mongoose');
 
 router.get('/', async (req, res) => {
     try {
@@ -19,7 +19,7 @@ router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        if (!checkValidUUID(id)) {
+        if (!isValidID(id)) {
             const errMessage = 'Please input valid ID.';
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
@@ -57,7 +57,7 @@ router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        if (!checkValidUUID(id)) {
+        if (!isValidID(id)) {
             const errMessage = 'Please input valid ID.';
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
@@ -90,7 +90,7 @@ router.delete('/:id', async (req, res) => {
         // NOTE
         // Need to check first about related Product that have selected category
 
-        if (!checkValidUUID(id)) {
+        if (!isValidID(id)) {
             const errMessage = 'Please input valid ID.';
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
