@@ -7,7 +7,10 @@ const { Course, validateCourse } = require('../models/course');
 
 router.get('/', async (req, res) => {
     try {
-        const courses = await Course.find().limit(10).sort('date').select('name author tags isPublished');
+        const courses = await Course.find()
+            .select('name author tags isPublished price')
+            .limit(10)
+            .sort('date');
 
         sendResponse(res, {
             message: courses.length > 0 ? 'Data found' : 'Empty list',
@@ -47,11 +50,14 @@ router.post('/', async (req, res) => {
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
 
+        console.log('body...', req.body)
+
         let course = new Course({
             name: req.body.name,
             author: req.body.author,
             isPublished: req.body.isPublished,
             tags: req.body.tags,
+            price: req.body.price,
         })
         course = await course.save();
 
