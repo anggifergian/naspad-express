@@ -3,6 +3,11 @@ const Joi = require('joi');
 
 const Course = mongoose.model('Course', new mongoose.Schema({
     name: String,
+    category: {
+        type: String,
+        required: true,
+        enum: [ 'web', 'mobille', 'networkd' ],
+    },
     author: String,
     tags: {
         type: Array,
@@ -30,6 +35,7 @@ function validateCourse(data) {
         tags: Joi.array().items(Joi.string()),
         isPublished: Joi.boolean().required(),
         price: Joi.number(),
+        category: Joi.string(),
     });
 
     return schema.validate(data);

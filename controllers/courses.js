@@ -54,6 +54,7 @@ router.post('/', async (req, res) => {
 
         let course = new Course({
             name: req.body.name,
+            category: req.body.category,
             author: req.body.author,
             isPublished: req.body.isPublished,
             tags: req.body.tags,
