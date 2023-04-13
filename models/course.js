@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
 
+const { authorSchema } = require('./author');
+
 const Course = mongoose.model('Course', new mongoose.Schema({
     name: String,
     category: {
@@ -8,7 +10,7 @@ const Course = mongoose.model('Course', new mongoose.Schema({
         required: true,
         enum: [ 'web', 'mobille', 'networkd' ],
     },
-    author: String,
+    authors: [authorSchema],
     tags: {
         type: Array,
         validate: {
@@ -31,11 +33,11 @@ const Course = mongoose.model('Course', new mongoose.Schema({
 function validateCourse(data) {
     const schema = Joi.object({
         name: Joi.string().min(3).max(255).required(),
-        author: Joi.string().min(3).max(255),
-        tags: Joi.array().items(Joi.string()),
         isPublished: Joi.boolean().required(),
+        category: Joi.string().required(),
+        authors: Joi.array(),
+        tags: Joi.array().items(Joi.string()),
         price: Joi.number(),
-        category: Joi.string(),
     });
 
     return schema.validate(data);

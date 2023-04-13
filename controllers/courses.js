@@ -4,11 +4,12 @@ const router = express.Router();
 const { sendResponse } = require('../utils/response');
 const { isValidID } = require('../utils/mongoose');
 const { Course, validateCourse } = require('../models/course');
+const { validateAuthor, mapAuthors } = require('../models/author');
 
 router.get('/', async (req, res) => {
     try {
         const courses = await Course.find()
-            .select('name author tags isPublished price')
+            .select('name author tags isPublished price authors')
             .limit(10)
             .sort('date');
 
@@ -44,18 +45,25 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try {
-        const { error } = validateCourse(req.body);
-        if (error) {
-            const errMessage = error.details[0].message.replace(/\"/g, '');
+        const { error: authorError } = validateAuthor(req.body.author);
+        if (authorError) {
+            console.log(authorError)
+            const errMessage = authorError.details[0].message.replace(/\"/g, '');
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
 
-        console.log('body...', req.body)
+        const { error: courseError } = validateCourse(req.body);
+        if (courseError) {
+            const errMessage = courseError.details[0].message.replace(/\"/g, '');
+            return sendResponse(res, { statusCode: 400, message: errMessage });
+        }
+
+        const mappedAuthors = mapAuthors(req.body.authors)
 
         let course = new Course({
             name: req.body.name,
             category: req.body.category,
-            author: req.body.author,
+            authors: mappedAuthors,
             isPublished: req.body.isPublished,
             tags: req.body.tags,
             price: req.body.price,
@@ -64,7 +72,7 @@ router.post('/', async (req, res) => {
 
         sendResponse(res, { message: 'Data created', data: course });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });   
+        sendResponse(res, { statusCode: 500, message: error['message'] });
     }
 })
 
