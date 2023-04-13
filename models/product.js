@@ -3,6 +3,7 @@
 const mongoose = require('mongoose');
 const moment = require('moment');
 const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 
 const min_title_length = 3;
 const max_title_length = 255;
