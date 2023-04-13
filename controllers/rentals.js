@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const { sendResponse, modify } = require('../utils/response');
+const { isValidID } = require('../utils/mongoose');
 const { Rental, validateRental } = require('../models/rental');
 const { Customer } = require('../models/customer');
 const { Movie } = require('../models/movie');
@@ -43,6 +44,16 @@ router.post('/', async (req, res) => {
         if (error) {
             const message = modify(error['details'][0]['message']);
             return sendResponse(res, { statusCode: 400, message });
+        }
+
+        if (!isValidID(req.body.customerId)) {
+            const errMessage = 'Please input customer valid ID.';
+            return sendResponse(res, { statusCode: 400, message: errMessage });
+        }
+
+        if (!isValidID(req.body.movieId)) {
+            const errMessage = 'Please input movie valid ID.';
+            return sendResponse(res, { statusCode: 400, message: errMessage });
         }
 
         const customer = await Customer.findById(req.body.customerId);
