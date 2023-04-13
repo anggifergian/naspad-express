@@ -4,7 +4,7 @@ const router = express.Router();
 const { sendResponse } = require('../utils/response');
 const { isValidID } = require('../utils/mongoose');
 const { Course, validateCourse } = require('../models/course');
-const { validateAuthor, mapAuthors } = require('../models/author');
+const { Author, validateAuthor, mapAuthors } = require('../models/author');
 
 router.get('/', async (req, res) => {
     try {
@@ -71,6 +71,99 @@ router.post('/', async (req, res) => {
         course = await course.save();
 
         sendResponse(res, { message: 'Data created', data: course });
+    } catch (error) {
+        sendResponse(res, { statusCode: 500, message: error['message'] });
+    }
+})
+
+router.patch('/add-author/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!isValidID(id)) {
+            const errMessage = 'Please input valid course Id.';
+            return sendResponse(res, { statusCode: 400, message: errMessage });
+        }
+
+        let course = await Course.findById(id);
+
+        if (!course) {
+            const errMessage = 'The course with the given ID was not found.';
+            return sendResponse(res, { statusCode: 404, message: errMessage });
+        }
+
+        const { error } = validateAuthor(req.body);
+        if (error) {
+            const errMessage = error.details[0].message.replace(/\"/g, '');
+            return sendResponse(res, { statusCode: 400, message: errMessage });
+        }
+        
+        const author = new Author({ name: req.body.name });
+        course.authors.push(author);
+        
+        course = await course.save();
+
+        sendResponse(res, { message: 'Author has been added successfuly.', data: course });
+    } catch (error) {
+        sendResponse(res, { statusCode: 500, message: error['message'] });
+    }
+})
+
+router.patch('/remove-author/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!isValidID(id)) {
+            const errMessage = 'Please input valid course Id.';
+            return sendResponse(res, { statusCode: 400, message: errMessage });
+        }
+
+        let course = await Course.findById(id);
+
+        if (!course) {
+            const errMessage = 'The course with the given ID was not found.';
+            return sendResponse(res, { statusCode: 404, message: errMessage });
+        }
+
+        if (!isValidID(req.body.authorId)) {
+            const errMessage = 'Please input valid author Id.';
+            return sendResponse(res, { statusCode: 400, message: errMessage });
+        }
+
+        const author = course.authors.id(req.body.authorId);
+
+        if (!author) {
+            const errMessage = 'The author with the given ID was not found.';
+            return sendResponse(res, { statusCode: 404, message: errMessage });
+        }
+
+        author.remove();
+        course = await course.save();
+
+        sendResponse(res, { message: 'Author has been removed successfuly.', data: course });
+    } catch (error) {
+        sendResponse(res, { statusCode: 500, message: error['message'] });
+    }
+})
+
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!isValidID(id)) {
+            const errMessage = 'Please input valid ID.';
+            return sendResponse(res, { statusCode: 400, message: errMessage });
+        }
+
+        const course = await Course.findByIdAndRemove(id);
+
+        if (!course) {
+            const errMessage = 'The course with the given ID was not found.';
+            return sendResponse(res, { statusCode: 404, message: errMessage });
+        }
+
+        const successMessage = 'The course with the given ID has been deleted successfully.';
+        sendResponse(res, { message: successMessage, data: course });
     } catch (error) {
         sendResponse(res, { statusCode: 500, message: error['message'] });
     }
