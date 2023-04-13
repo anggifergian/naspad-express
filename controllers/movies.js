@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const { sendResponse, modify } = require('../utils/response');
+const { isValidID } = require('../utils/mongoose');
 const { Movie, validateMovie } = require('../models/movie');
 const { Genre } = require('../models/genre');
 
@@ -10,6 +11,27 @@ router.get('/', async (req, res) => {
         const movies = await Movie.find().sort('title').limit(10);
 
         sendResponse(res, { message: movies.length > 0 ? 'Data found' : 'Empty list', data: movies });
+    } catch (error) {
+        sendResponse(res, { statusCode: 500, message: error['message'] });
+    }
+})
+
+router.get('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!isValidID(id)) {
+            const errMessage = 'Please input valid ID.';
+            return sendResponse(res, { statusCode: 400, message: errMessage });
+        }
+
+        const movie = await Movie.findById(id);
+        if (!movie) {
+            const errMessage = 'The movie with the given Id was not found.';
+            return sendResponse(res, { statusCode: 404, message: errMessage });
+        }
+
+        sendResponse(res, { message: 'Data found', data: movie });
     } catch (error) {
         sendResponse(res, { statusCode: 500, message: error['message'] });
     }
