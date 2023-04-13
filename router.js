@@ -8,5 +8,6 @@ router.use('/genres', require('./controllers/genres'));
 router.use('/customers', require('./controllers/customers'));
 router.use('/movies', require('./controllers/movies'));
 router.use('/rentals', require('./controllers/rentals'));
+router.use('/users', require('./controllers/users'));
 
 module.exports = router;
