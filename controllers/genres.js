@@ -26,8 +26,8 @@ router.post('/', async (req, res) => {
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
 
-        let genre = new Genre({ name: req.body.name });
-        genre = await genre.save();
+        const genre = new Genre({ name: req.body.name });
+        await genre.save();
 
         sendResponse(res, { message: 'Data created', data: genre });
     } catch (error) {

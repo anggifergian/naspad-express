@@ -51,14 +51,14 @@ router.post('/', async (req, res) => {
             return sendResponse(res, { statusCode: 404, message: errMessage });
         }
 
-        let model = new Movie({
+        const model = new Movie({
             title: req.body.title,
             genre: genre,
             numberInStock: req.body.numberInStock,
             dailyRentalRate: req.body.dailyRentalRate,
         });
 
-        model = await model.save();
+        await model.save();
 
         sendResponse(res, { message: 'Data created', data: model });
     } catch (error) {
