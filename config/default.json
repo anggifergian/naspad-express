@@ -1,3 +1,8 @@
 {
-    "name": "Naspad Service"
+    "name": "Naspad Service",
+    "mail": {
+        "host": "",
+        "password": ""
+    },
+    "jwtPrivateKey": ""
 }

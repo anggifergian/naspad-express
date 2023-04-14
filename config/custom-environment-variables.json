@@ -1,5 +1,6 @@
 {
     "mail": {
-        "password": "mailPassword"
-    }
+        "password": "naspad_mailPassword"
+    },
+    "jwtPrivateKey": "naspad_jwtPrivateKey"
 }

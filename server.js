@@ -12,6 +12,16 @@ const PORT = process.env.PORT || 9000;
 const app = express();
 const httpServer = createServer(app);
 
+if (!config.get('jwtPrivateKey')) {
+    debug(`FATAL ERROR: jwtPrivateKey env is not defined.`);
+    process.exit(1);
+}
+
+if (!config.get('mail.password')) {
+    debug(`FATAL ERROR: mainPassword env is not defined.`);
+    process.exit(1);
+}
+
 debug(`App name: ${config.get('name')}`);
 debug(`Mail service: ${config.get('mail.host')}`);
 debug(`Mail password: ${config.get('mail.password')}`);
