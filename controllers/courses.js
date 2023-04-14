@@ -47,7 +47,6 @@ router.post('/', async (req, res) => {
     try {
         const { error: authorError } = validateAuthor(req.body.author);
         if (authorError) {
-            console.log(authorError)
             const errMessage = authorError.details[0].message.replace(/\"/g, '');
             return sendResponse(res, { statusCode: 400, message: errMessage });
         }
