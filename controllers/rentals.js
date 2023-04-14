@@ -6,6 +6,7 @@ const { isValidID } = require('../utils/mongoose');
 const { Rental, validateRental } = require('../models/rental');
 const { Customer } = require('../models/customer');
 const { Movie } = require('../models/movie');
+const authMiddleware = require('../middleware/auth');
 
 router.get('/', async (req, res) => {
     try {
@@ -38,7 +39,7 @@ router.get('/:id', async (req, res) => {
     }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
     try {
         const { error } = validateRental(req.body);
         if (error) {

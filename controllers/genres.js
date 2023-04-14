@@ -4,6 +4,7 @@ const router = express.Router();
 const { Genre, validateGenre } = require('../models/genre');
 const { sendResponse } = require('../utils/response');
 const { isValidID } = require('../utils/mongoose');
+const authMiddleware = require('../middleware/auth');
 
 router.get('/', async (req, res) => {
     try {
@@ -18,7 +19,7 @@ router.get('/', async (req, res) => {
     }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
     try {
         const { error } = validateGenre(req.body);
         if (error) {
@@ -35,7 +36,7 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -65,7 +66,7 @@ router.put('/:id', async (req, res) => {
     }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
 

@@ -5,6 +5,7 @@ const { sendResponse } = require('../utils/response');
 const { isValidID } = require('../utils/mongoose');
 const { Course, validateCourse } = require('../models/course');
 const { Author, validateAuthor, mapAuthors } = require('../models/author');
+const authMiddleware = require('../middleware/auth');
 
 router.get('/', async (req, res) => {
     try {
@@ -43,7 +44,7 @@ router.get('/:id', async (req, res) => {
     }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
     try {
         const { error: authorError } = validateAuthor(req.body.author);
         if (authorError) {
@@ -75,7 +76,7 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.patch('/add-author/:id', async (req, res) => {
+router.patch('/add-author/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -108,7 +109,7 @@ router.patch('/add-author/:id', async (req, res) => {
     }
 })
 
-router.patch('/remove-author/:id', async (req, res) => {
+router.patch('/remove-author/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -145,7 +146,7 @@ router.patch('/remove-author/:id', async (req, res) => {
     }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
 

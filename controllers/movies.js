@@ -5,6 +5,7 @@ const { sendResponse, modify } = require('../utils/response');
 const { isValidID } = require('../utils/mongoose');
 const { Movie, validateMovie } = require('../models/movie');
 const { Genre } = require('../models/genre');
+const authMiddleware = require('../middleware/auth');
 
 router.get('/', async (req, res) => {
     try {
@@ -37,7 +38,7 @@ router.get('/:id', async (req, res) => {
     }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
     try {
         const { error } = validateMovie(req.body);
         if (error) {
