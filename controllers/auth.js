@@ -3,8 +3,6 @@ const router = express.Router();
 const Joi = require('joi');
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const config = require('config');
 
 const { sendResponse, modify } = require('../utils/response');
 const { User } = require('../models/user');
@@ -27,13 +25,13 @@ router.post('/login', async (req, res) => {
             return sendResponse(res, { statusCode: 400, message: "Invalid email or password." });
         }
 
-        const token = jwt.sign({ _id: user._id }, config.get('jwtPrivateKey'));
+        const token = user.generateAuthToken();
 
         sendResponse(res, { 
             message: 'Login successful', 
             data: {
-                ..._.pick(user, ['name', 'email']),
                 token,
+                ..._.pick(user, ['name', 'email']),
             } 
         });
     } catch (error) {

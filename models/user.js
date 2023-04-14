@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
 const moment = require('moment');
 const Joi = require('joi');
+const jwt = require('jsonwebtoken');
+const config = require('config');
 
-const User = mongoose.model('User', new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -27,7 +29,13 @@ const User = mongoose.model('User', new mongoose.Schema({
         required: true,
         default: moment().format("YYYY-MM-DD, HH:mm:ss")
     },
-}))
+})
+
+userSchema.methods.generateAuthToken = function() {
+    return jwt.sign({ _id: this._id }, config.get('jwtPrivateKey'));
+}
+
+const User = mongoose.model('User', userSchema);
 
 function validateUser(item) {
     const schema = Joi.object({
