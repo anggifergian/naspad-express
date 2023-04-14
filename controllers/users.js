@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 
 const { sendResponse, modify } = require('../utils/response');
 const { User, validateUser } = require('../models/user');
+const authMiddleware = require('../middleware/auth');
 
 router.post('/', async (req, res) => {
     try {
@@ -33,6 +34,15 @@ router.post('/', async (req, res) => {
             message: 'Data created',
             data: _.pick(user, ['_id', 'name', 'email'])
         });
+    } catch (error) {
+        sendResponse(res, { statusCode: 500, message: error['message'] });
+    }
+})
+
+router.get('/me', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select('-password');
+        sendResponse(res, { message: 'Data found', data: user });
     } catch (error) {
         sendResponse(res, { statusCode: 500, message: error['message'] });
     }
