@@ -6,7 +6,9 @@ const morgan = require('morgan');
 const config = require('config');
 const mongoose = require('mongoose');
 const { createServer } = require('http');
+
 const { debug, mongodDebug } = require('./utils/debugger');
+const error = require('./middleware/error');
 
 const PORT = process.env.PORT || 9000;
 const app = express();
@@ -17,14 +19,9 @@ if (!config.get('jwtPrivateKey')) {
     process.exit(1);
 }
 
-if (!config.get('mail.password')) {
-    debug(`FATAL ERROR: mainPassword env is not defined.`);
-    process.exit(1);
-}
-
 debug(`App name: ${config.get('name')}`);
 debug(`Mail service: ${config.get('mail.host')}`);
-debug(`Mail password: ${config.get('mail.password')}`);
+// debug(`Mail password: ${config.get('mail.password')}`);
 
 if (app.get('env') === 'development') {
     app.use(morgan('common'));
@@ -53,6 +50,9 @@ app.use(express.static('public'));
 
 /**=== Main Route ===*/
 app.use('/api/v1', require('./router'));
+
+/**=== Error Handler ===*/
+app.use(error);
 
 /**=== Listener ===*/
 httpServer.listen(PORT, () => debug(`Listening on port ${PORT}`));
