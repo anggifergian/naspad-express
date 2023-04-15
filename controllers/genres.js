@@ -6,16 +6,15 @@ const { sendResponse } = require('../utils/response');
 const { isValidID } = require('../utils/mongoose');
 const authMiddleware = require('../middleware/auth');
 const adminMiddleware = require('../middleware/admin');
-const asyncMiddleware = require('../middleware/async');
 
-router.get('/', asyncMiddleware(async (req, res, next) => {
+router.get('/', async (req, res) => {
     const genres = await Genre.find().select('name').limit(10).sort('createdAt');
 
     sendResponse(res, {
         message: genres.length > 0 ? 'Data found.' : 'Empty list.',
         data: genres,
     })
-}))
+})
 
 router.post('/', authMiddleware, async (req, res) => {
     try {

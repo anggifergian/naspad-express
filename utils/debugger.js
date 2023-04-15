@@ -3,7 +3,7 @@ const socketDebug = require('debug')('app:socket');
 const mongodDebug = require('debug')('app:mongod');
 
 module.exports = {
-    debug: startupDebug,
+    startupDebug,
     socketDebug,
     mongodDebug,
 }
