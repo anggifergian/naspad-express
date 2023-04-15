@@ -18,7 +18,7 @@ if (!config.get('jwtPrivateKey')) {
 }
 
 if (!config.get('mail.password')) {
-    debug(`FATAL ERROR: mainPassword env is not defined.`);
+    debug(`FATAL ERROR: mailPassword env is not defined.`);
     process.exit(1);
 }
 
