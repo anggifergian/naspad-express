@@ -9,6 +9,7 @@ const { createServer } = require('http');
 
 const { debug, mongodDebug } = require('./utils/debugger');
 const error = require('./middleware/error');
+const logger = require('./utils/logger');
 
 const PORT = process.env.PORT || 9000;
 const app = express();
@@ -19,6 +20,10 @@ if (!config.get('jwtPrivateKey')) {
     process.exit(1);
 }
 
+process.on('uncaughtException', (ex) => {
+    logger.error(ex.message, ex);
+})
+
 debug(`App name: ${config.get('name')}`);
 debug(`Mail service: ${config.get('mail.host')}`);
 // debug(`Mail password: ${config.get('mail.password')}`);
@@ -28,10 +33,15 @@ if (app.get('env') === 'development') {
     debug('Morgan enabled...');
 }
 
+// throw new Error('Test nodeJs uncaught exception.');
+
 mongoose.set('strictQuery', false);
 mongoose.connect('mongodb://localhost/playground')
     .then(() => mongodDebug('Connected to MongoDB...'))
     .catch(err => mongodDebug('Could not connect to MongoDB', err));
+
+/**=== Add Morgan ===*/
+// app.use(require('./middleware/morgan'));
 
 /**=== Secure HTTP headers ===*/
 app.use(helmet());
