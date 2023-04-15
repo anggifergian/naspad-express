@@ -5,6 +5,7 @@ const { Genre, validateGenre } = require('../models/genre');
 const { sendResponse } = require('../utils/response');
 const { isValidID } = require('../utils/mongoose');
 const authMiddleware = require('../middleware/auth');
+const adminMiddleware = require('../middleware/admin');
 
 router.get('/', async (req, res) => {
     try {
@@ -66,7 +67,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     }
 })
 
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id', [authMiddleware, adminMiddleware], async (req, res) => {
     try {
         const { id } = req.params;
 
