@@ -24,6 +24,10 @@ process.on('uncaughtException', (ex) => {
     logger.error(ex.message, ex);
 })
 
+process.on('unhandledRejection', (ex) => {
+    logger.error(ex.message, ex);
+})
+
 debug(`App name: ${config.get('name')}`);
 debug(`Mail service: ${config.get('mail.host')}`);
 // debug(`Mail password: ${config.get('mail.password')}`);
@@ -33,7 +37,12 @@ if (app.get('env') === 'development') {
     debug('Morgan enabled...');
 }
 
+/**=== Perform Uncaught Exception ===*/
 // throw new Error('Test nodeJs uncaught exception.');
+
+/**=== Perform Unhandle Promise Rejections ===*/
+// const p = Promise.reject(new Error('Something failed miserably!'));
+// p.then(() => console.log('Done!'));
 
 mongoose.set('strictQuery', false);
 mongoose.connect('mongodb://localhost/playground')
