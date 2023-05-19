@@ -8,16 +8,12 @@ const authMiddleware = require('../middleware/auth');
 const adminMiddleware = require('../middleware/admin');
 
 router.get('/', async (req, res) => {
-    try {
-        const genres = await Genre.find().select('name').limit(10).sort('createdAt');
+    const genres = await Genre.find().select('name').limit(10).sort('createdAt');
 
-        sendResponse(res, {
-            message: genres.length > 0 ? 'Data found.' : 'Empty list.',
-            data: genres,
-        })
-    } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
-    }
+    sendResponse(res, {
+        message: genres.length > 0 ? 'Data found.' : 'Empty list.',
+        data: genres,
+    })
 })
 
 router.post('/', authMiddleware, async (req, res) => {
