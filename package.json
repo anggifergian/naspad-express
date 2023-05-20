@@ -4,8 +4,8 @@
   "description": "This README would normally document whatever steps are necessary to get your application up and running.",
   "main": "server.js",
   "scripts": {
-    "start": "DEBUG=app:startup,app:socket,app:mongod nodemon server.js",
-    "test": "jest --watchAll"
+    "start": "DEBUG=app:startup,app:socket nodemon server.js",
+    "test": "jest --watchAll --verbose"
   },
   "repository": {
     "type": "git",
@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "jest": "^29.5.0",
-    "nodemon": "^2.0.19"
+    "nodemon": "^2.0.19",
+    "supertest": "^6.3.3"
   }
 }
