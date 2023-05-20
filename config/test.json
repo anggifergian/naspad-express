@@ -4,5 +4,6 @@
         "host": "",
         "password": ""
     },
-    "jwtPrivateKey": "1234"
+    "jwtPrivateKey": "1234",
+    "db": "mongodb://localhost/playground_test"
 }
