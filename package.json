@@ -4,7 +4,8 @@
   "description": "This README would normally document whatever steps are necessary to get your application up and running.",
   "main": "server.js",
   "scripts": {
-    "start": "DEBUG=app:startup,app:socket,app:mongod nodemon server.js"
+    "start": "DEBUG=app:startup,app:socket,app:mongod nodemon server.js",
+    "test": "jest --watchAll"
   },
   "repository": {
     "type": "git",
@@ -39,6 +40,7 @@
     "winston-mongodb": "^5.1.1"
   },
   "devDependencies": {
+    "jest": "^29.5.0",
     "nodemon": "^2.0.19"
   }
 }
