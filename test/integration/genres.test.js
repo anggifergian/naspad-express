@@ -79,7 +79,7 @@ describe('/api/genres', () => {
             expect(res.status).toBe(401);
         });
 
-        it('should return 400 if genres is less than 5 characters.', async () => {            
+        it('should return 400 if genres is less than 5 characters.', async () => {
             name = '1234';
 
             const res = await exec();
@@ -108,6 +108,84 @@ describe('/api/genres', () => {
 
             expect(res.body.data).toHaveProperty('_id');
             expect(res.body.data).toHaveProperty('name', 'genre1');
+        });
+    });
+
+    describe('PUT /', () => {
+        let token;
+        let id;
+        let newName;
+        let genre;
+
+        beforeEach(async () => {
+            genre = new Genre({ name: 'genre1' });
+            await genre.save();
+
+            id = genre._id;
+            token = new User().generateAuthToken();
+            newName = 'updatedName'
+        });
+
+        function exec() {
+            return request(server)
+                .put('/api/v1/genres/' + id)
+                .set('x-auth-token', token)
+                .send({ name: newName });
+        }
+
+        it('should return 401 if client is not logged in.', async () => {
+            token = '';
+
+            const res = await exec();
+
+            expect(res.status).toBe(401);
+        });
+
+        it('should return 400 if invalid id is passed.', async () => {
+            id = 1;
+
+            const res = await exec();
+
+            expect(res.status).toBe(400);
+        });
+
+        it('should return 400 if genres name less than 5 characters.', async () => {
+            newName = '1234';
+
+            const res = await exec();
+
+            expect(res.status).toBe(400);
+        });
+
+        it('should return 400 if genres name less than 500 characters.', async () => {
+            newName = new Array(52).join('a');
+            
+            const res = await exec();
+
+            expect(res.status).toBe(400);
+        });
+
+        it('should return 404 if genre with the given id was not found.', async () => {
+            id = mongoose.Types.ObjectId();
+
+            const res = await exec();
+
+            expect(res.status).toBe(400);
+        });
+
+        it('should update the genre if input is valid.', async () => {
+            await exec();
+
+            const updatedGenre = await Genre.findById(id);
+
+            expect(updatedGenre.name).toBe(newName);
+        });
+
+        it('should return the updated genre if it is valid.', async () => {
+            const res = await exec();
+
+            expect(res.body.data).toHaveProperty('_id');
+            expect(res.body.data).toHaveProperty('name', newName);
         });
     });
 });
