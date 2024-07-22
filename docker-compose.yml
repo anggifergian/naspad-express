@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "9000:9000"
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://db:27017/playground
+    depends_on:
+      - db
+    volumes:
+      - .:/usr/src/app
+    command: npm start
+
+  db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
