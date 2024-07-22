@@ -1,12 +1,13 @@
 const morgan = require('morgan');
 const logger = require('../utils/logger');
+const { getEnvVar } = require('../utils/config');
 
 const stream = {
     write: (message) => logger.http(message)
 }
 
 const skip = () => {
-    const env = process.env.NODE_ENV || "development";
+    const env = getEnvVar('NODE_ENV', 'development');
     return env !== "development";
 }
 

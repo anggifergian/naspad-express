@@ -1,14 +1,15 @@
+const { getEnvVar } = require('./utils/config');
 const express = require('express');
 const { createServer } = require('http');
 const logger = require('./utils/logger');
 
-const PORT = process.env.PORT || 9000;
+const PORT = getEnvVar('PORT') || 9000;
 const app = express();
 const httpServer = createServer(app);
 
-require('./startup/logging')();
+require('./startup/logging')(app);
 require('./startup/config')();
-require('./startup/db')();
+require('./startup/db')(app);
 require('./startup/middleware')(app);
 require('./startup/validation')();
 
