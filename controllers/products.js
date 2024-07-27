@@ -5,6 +5,7 @@ const { Product, validateProduct, mapCategories, compareCategories } = require('
 const { Category } = require('../models/category');
 const { isValidID } = require('../utils/mongoose');
 const { sendResponse, modify } = require('../utils/response');
+const BadRequestError = require('../errors/badRequestError');
 
 router.get('/', async (req, res) => {
     try {
@@ -42,44 +43,44 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
-    try {
-        const { error } = validateProduct(req['body']);
-        if (error) {
-            const errMessage = modify(error['details'][0]['message']);
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
+const validateProductMiddleware = (req, res, next) => {
+    const { error } = validateProduct(req['body']);
+    if (error) {
+        const errMessage = modify(error['details'][0]['message']);
+        return next(new BadRequestError(errMessage));
+    }
 
-        const mappedCategories = mapCategories(req['body']['categories']);
+    next();
+}
+
+router.post('/', validateProductMiddleware, async (req, res) => {
+    try {
+        const { title, price, imageUrl, categories: categoryIds } = req.body;
+
+        const mappedCategories = mapCategories(categoryIds);
         const categories = await Category.find({ _id: { $in: mappedCategories } });
 
         if (!categories.length) {
-            const errMessage = 'Invalid categories';
-            return sendResponse(res, { statusCode: 400, message: errMessage });
+            throw new BadRequestError('Invalid categories.');
         }
 
         if (categories.length !== mappedCategories.length) {
             const invalidIDs = compareCategories(mappedCategories, categories);
-            const errMessage = 'Invalid categories';
-            return sendResponse(res, {
-                statusCode: 400,
-                message: errMessage,
-                data: invalidIDs
-            });
+            throw new BadRequestError('Invalid categories.', invalidIDs);
         }
 
         let product = new Product({
-            title: req['body']['title'],
-            price: req['body']['price'],
-            imageUrl: req['body']['imageUrl'],
+            title,
+            price,
+            imageUrl,
             categories: [...mappedCategories],
         });
 
-        product = await product.save();
+        const savedProduct = await product.save();
 
-        sendResponse(res, { message: 'Data created', data: product });
+        sendResponse(res, { message: 'Data created', data: savedProduct });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 });
 

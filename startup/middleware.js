@@ -25,6 +25,9 @@ module.exports = function (app) {
     /**=== Main Route ===*/
     app.use('/api/v1', require('../startup/routes'));
 
+    /**=== 404 handler for unknown routes ===*/
+    app.all('*', require('../middleware/unknownRoutes'));
+
     /**=== Error Handler ===*/
-    app.use(require('../middleware/error'));
+    app.use(require('../middleware/errorHandler'));
 }

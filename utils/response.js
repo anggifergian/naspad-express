@@ -1,18 +1,20 @@
-module.exports.sendResponse = function (res, opt) {
-    if (opt['statusCode'] || (opt['statusCode'] && opt['statusCode'] !== 200)) {
-        let status = opt['statusCode'];
-        delete opt['statusCode'];
-        
-        return res
-            .status(status)
-            .send({
-                'success': false,
-                'message': opt['message'],
-                ...opt,
-            });
+module.exports.sendResponse = function (res, { statusCode = 200, status = 'success', message = '', data = null, meta = null }) {
+    const response = {
+        status,
+        message
+    };
+
+    if (data != null) {
+        response.data = data;
     }
 
-    return res.send({ 'success': true, ...opt });
+    if (meta != null) {
+        response.meta = meta;
+    }
+
+    return res
+        .status(statusCode)
+        .json(response);
 }
 
 module.exports.modify = function (value) {
