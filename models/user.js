@@ -1,8 +1,8 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const moment = require('moment');
 const Joi = require('joi');
 const jwt = require('jsonwebtoken');
+
 const { getEnvVar } = require('../utils/config');
 
 const userSchema = new mongoose.Schema({
@@ -25,13 +25,8 @@ const userSchema = new mongoose.Schema({
         minlength: 5,
         maxlength: 1024,
     },
-    isAdmin: Boolean,
-    createdAt: {
-        type: Date,
-        required: true,
-        default: moment().format("YYYY-MM-DD, HH:mm:ss")
-    },
-})
+    isAdmin: { type: Boolean, default: false },
+}, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } })
 
 userSchema.methods.generateAuthToken = function() {
     return jwt.sign({ _id: this._id, isAdmin: this.isAdmin }, getEnvVar('jwtPrivateKey'));
@@ -49,7 +44,17 @@ function validateUser(item) {
     return schema.validate(item);
 }
 
+function validateLogin(item) {
+    const schema = Joi.object({
+        email: Joi.string().min(5).max(255).required().email(),
+        password: Joi.string().min(5).max(1024).required()
+    });
+
+    return schema.validate(item);
+}
+
 module.exports = {
     User,
     validateUser,
+    validateLogin,
 }

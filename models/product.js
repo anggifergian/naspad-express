@@ -1,13 +1,10 @@
-"use strict";
-
-const mongoose = require('mongoose');
-const moment = require('moment');
 const Joi = require('joi');
+const mongoose = require('mongoose');
 
 const min_title_length = 3;
 const max_title_length = 255;
 
-const Product = mongoose.model('Product', new mongoose.Schema({
+const productSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
@@ -36,12 +33,9 @@ const Product = mongoose.model('Product', new mongoose.Schema({
             message: 'A product should have at least one category.'
         },
     },
-    createdAt: {
-        type: Date,
-        required: true,
-        default: moment().format("YYYY-MM-DD, HH:mm:ss")
-    }
-}));
+}, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });
+
+const Product = mongoose.model('Product', productSchema);
 
 function validateProduct(data) {
     const shcema = Joi.object({
