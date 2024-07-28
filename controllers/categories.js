@@ -1,111 +1,80 @@
 const express = require('express');
 const router = express.Router();
 
-const { validateCategory, Category } = require('../models/category');
+const { Category } = require('../models/category');
 const { sendResponse } = require('../utils/response');
-const { isValidID } = require('../utils/mongoose');
+const NotFoundError = require('../errors/notFoundError');
 
-router.get('/', async (req, res) => {
+const { validateID } = require('../middleware/validators/validateIDMiddleware');
+const { validateCategoryBody } = require('../middleware/validators/validateCategoryMiddleware');
+
+router.get('/', async (req, res, next) => {
     try {
-        const categories = await Category.find().sort('-createdAt').limit(10).select('name');
+        const categories = await Category
+            .find()
+            .sort('-createdAt')
+            .limit(10)
+            .select('name');
 
         sendResponse(res, { message: categories.length > 0 ? 'Data found' : 'Empty list', data: categories });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateID, async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        if (!isValidID(id)) {
-            const errMessage = 'Please input valid ID.';
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
-
         const category = await Category.findById(id);
-
-        if (!category) {
-            return sendResponse(res, { statusCode: 404, message: 'Data not found' });
-        }
+        if (!category) throw new NotFoundError('Data not found');
 
         sendResponse(res, { message: 'Data found', data: category });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', validateCategoryBody, async (req, res, next) => {
     try {
-        const { error } = validateCategory(req.body);
-        if (error) {
-            const errMessage = error.details[0].message.replace(/\"/g, '');
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
+        const category = new Category({ name: req['body']['name'] });
+        const savedCategory = await category.save();
 
-        let category = new Category({ name: req['body']['name'] });
-        category = await category.save();
-
-        sendResponse(res, { message: 'Data created', data: category });
+        sendResponse(res, { message: 'Data created', data: savedCategory });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validateID, validateCategoryBody, async (req, res, next) => {
     try {
         const { id } = req.params;
-
-        if (!isValidID(id)) {
-            const errMessage = 'Please input valid ID.';
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
-
-        const { error } = validateCategory(req.body);
-        if (error) {
-            const errMessage = error.details[0].message.replace(/\"/g, '');
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
+        const { name } = req.body;
 
         const category = await Category.findByIdAndUpdate(id,
-            { $set: { name: req['body']['name'] } },
+            {
+                $set: { name }
+            },
             { new: true });
 
-        if (!category) {
-            const errMessage = 'The category with the given ID was not found.';
-            return sendResponse(res, { statusCode: 404, message: errMessage });
-        }
+        if (!category) throw new NotFoundError('The category with the given ID was not found.');
 
-        sendResponse(res, { message: 'Data updated', data: category, });
+        sendResponse(res, { message: 'Data updated', data: category });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', validateID, async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        // NOTE
-        // Need to check first about related Product that have selected category
-
-        if (!isValidID(id)) {
-            const errMessage = 'Please input valid ID.';
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
-
         const category = await Category.findByIdAndRemove(id);
+        if (!category) throw new NotFoundError('The category with the given ID was not found.');
 
-        if (!category) {
-            const errMessage = 'The category with the given ID was not found.';
-            return sendResponse(res, { statusCode: 404, message: errMessage });
-        }
-
-        const successMessage = 'The category with the given ID has been deleted successfully.';
-        sendResponse(res, { message: successMessage, data: category });
+        sendResponse(res, { message: 'The category with the given ID has been deleted successfully.', data: category });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 

@@ -3,48 +3,61 @@ const router = express.Router();
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
 
-const { sendResponse, modify } = require('../utils/response');
-const { User, validateUser } = require('../models/user');
+const { sendResponse } = require('../utils/response');
+const { User } = require('../models/user');
 const authMiddleware = require('../middleware/auth');
+const { validateUserBody } = require('../middleware/validators/validateUserMiddleware');
+const BadRequestError = require('../errors/badRequestError');
 
-router.post('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
     try {
-        const { error } = validateUser(req.body);
-        if (error) {
-            const errMessage = modify(error['details'][0]['message']);
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
+        const users = await User
+            .find()
+            .select('-__v')
+            .sort('-updatedAt');
 
+        sendResponse(res, {
+            message: users.length > 0 ? 'Data found' : 'Empty list',
+            data: users,
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/', validateUserBody, async (req, res, next) => {
+    try {
         let user = await User.findOne({ email: req.body.email });
-        if (user) {
-            const errMessage = "User already exist.";
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
+        if (user) throw new BadRequestError("User already exists.");
 
-        user = new User(_.pick(req.body, ['name', 'email','password']));
+        user = new User(_.pick(req.body, ['name', 'email', 'password']));
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(user.password, salt);
 
-        await user.save();
+        const savedUser = await user.save();
 
         const token = user.generateAuthToken();
 
-        res.header('x-auth-token', token).send({
-            status: true,
+        res.header('x-auth-token', token);
+
+        sendResponse(res, {
             message: 'Data created',
-            data: _.pick(user, ['_id', 'name', 'email'])
+            data: _.pick(savedUser, ['_id', 'name', 'email'])
         });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 
-router.get('/me', authMiddleware, async (req, res) => {
+router.get('/me', authMiddleware, async (req, res, next) => {
     try {
-        const user = await User.findById(req.user._id).select('-password');
+        const user = await User
+            .findById(req.user._id)
+            .select('-password -__v -createdAt');
+
         sendResponse(res, { message: 'Data found', data: user });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 

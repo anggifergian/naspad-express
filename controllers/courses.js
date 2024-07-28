@@ -1,171 +1,127 @@
 const express = require('express');
 const router = express.Router();
 
-const { sendResponse } = require('../utils/response');
-const { isValidID } = require('../utils/mongoose');
-const { Course, validateCourse } = require('../models/course');
-const { Author, validateAuthor, mapAuthors } = require('../models/author');
-const authMiddleware = require('../middleware/auth');
+const { Course } = require('../models/course');
+const { Author } = require('../models/author');
 
-router.get('/', async (req, res) => {
+const { sendResponse } = require('../utils/response');
+const BadRequestError = require('../errors/badRequestError');
+const NotFoundError = require('../errors/notFoundError');
+
+const authMiddleware = require('../middleware/auth');
+const { validateID, validateAuthorID } = require('../middleware/validators/validateIDMiddleware');
+const { validateCourseBody } = require('../middleware/validators/validateCourseMiddleware');
+const { validateAuthorBody } = require('../middleware/validators/validateAuthorMiddleware');
+
+router.get('/', async (req, res, next) => {
+    const { page = 1, limit = 10 } = req.query;
+
     try {
         const courses = await Course.find()
             .select('name author tags isPublished price authors')
+            .skip((page - 1) * limit)
             .limit(10)
-            .sort('date');
+            .sort('date')
+            .populate('authors');
 
         sendResponse(res, {
             message: courses.length > 0 ? 'Data found' : 'Empty list',
             data: courses,
         });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateID, async (req, res, next) => {
     try {
         const { id } = req.params;
-
-        if (!isValidID(id)) {
-            const errMessage = 'Please input valid ID.';
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
 
         const course = await Course.findById(id);
 
         if (!course) {
-            return sendResponse(res, { statusCode: 404, message: 'Data not found' });
+            throw new NotFoundError('Data not found');
         }
 
         sendResponse(res, { message: 'Data found', data: course });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, validateCourseBody, async (req, res, next) => {
     try {
-        const { error: authorError } = validateAuthor(req.body.author);
-        if (authorError) {
-            const errMessage = authorError.details[0].message.replace(/\"/g, '');
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
+        const { authors, name, category, isPublished, tags, price } = req.body;
 
-        const { error: courseError } = validateCourse(req.body);
-        if (courseError) {
-            const errMessage = courseError.details[0].message.replace(/\"/g, '');
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
+        const authorDocs = await Author.find({ _id: { $in: authors }});
+        if (authorDocs.length !== authors.length) throw new BadRequestError('One or more authors are invalid.');
 
-        const mappedAuthors = mapAuthors(req.body.authors)
+        const course = new Course({
+            name,
+            category,
+            tags,
+            price,
+            isPublished,
+            authors,
+        });
 
-        let course = new Course({
-            name: req.body.name,
-            category: req.body.category,
-            authors: mappedAuthors,
-            isPublished: req.body.isPublished,
-            tags: req.body.tags,
-            price: req.body.price,
-        })
-        course = await course.save();
+        const savedCourse = await course.save();
 
-        sendResponse(res, { message: 'Data created', data: course });
+        sendResponse(res, { message: 'Data created', data: savedCourse });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 
-router.patch('/add-author/:id', authMiddleware, async (req, res) => {
+router.patch('/add-author/:id', authMiddleware, validateID, validateAuthorBody, async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        if (!isValidID(id)) {
-            const errMessage = 'Please input valid course Id.';
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
+        const course = await Course.findById(id);
+        if (!course) throw new BadRequestError('The course with the given ID was not found.');
 
-        let course = await Course.findById(id);
-
-        if (!course) {
-            const errMessage = 'The course with the given ID was not found.';
-            return sendResponse(res, { statusCode: 404, message: errMessage });
-        }
-
-        const { error } = validateAuthor(req.body);
-        if (error) {
-            const errMessage = error.details[0].message.replace(/\"/g, '');
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
-        
         const author = new Author({ name: req.body.name });
-        course.authors.push(author);
-        
-        course = await course.save();
+        const savedAuthor = await author.save();
 
-        sendResponse(res, { message: 'Author has been added successfuly.', data: course });
+        course.authors.push(savedAuthor._id);
+        const savedCourse = await course.save();
+
+        sendResponse(res, { message: 'Author has been added successfuly.', data: savedCourse });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 
-router.patch('/remove-author/:id', authMiddleware, async (req, res) => {
+router.patch('/remove-author/:id', authMiddleware, validateID, validateAuthorID, async (req, res, next) => {
     try {
         const { id } = req.params;
+        const { authorId } = req.body;
 
-        if (!isValidID(id)) {
-            const errMessage = 'Please input valid course Id.';
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
+        const course = await Course.findById(id);
+        if (!course) throw new BadRequestError('The course with the given ID was not found.');
 
-        let course = await Course.findById(id);
+        const authorIndex = course.authors.indexOf(authorId);
+        if (authorIndex === -1) throw new NotFoundError('The author with the given ID was not found in this course.');
 
-        if (!course) {
-            const errMessage = 'The course with the given ID was not found.';
-            return sendResponse(res, { statusCode: 404, message: errMessage });
-        }
+        course.authors.pull(authorId);
+        const savedCourse = await course.save();
 
-        if (!isValidID(req.body.authorId)) {
-            const errMessage = 'Please input valid author Id.';
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
-
-        const author = course.authors.id(req.body.authorId);
-
-        if (!author) {
-            const errMessage = 'The author with the given ID was not found.';
-            return sendResponse(res, { statusCode: 404, message: errMessage });
-        }
-
-        author.remove();
-        course = await course.save();
-
-        sendResponse(res, { message: 'Author has been removed successfuly.', data: course });
+        sendResponse(res, { message: 'Author has been removed successfuly.', data: savedCourse });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id', authMiddleware, validateID, async (req, res, next) => {
     try {
         const { id } = req.params;
-
-        if (!isValidID(id)) {
-            const errMessage = 'Please input valid ID.';
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
 
         const course = await Course.findByIdAndRemove(id);
+        if (!course) throw new NotFoundError('The course with the given ID was not found.');
 
-        if (!course) {
-            const errMessage = 'The course with the given ID was not found.';
-            return sendResponse(res, { statusCode: 404, message: errMessage });
-        }
-
-        const successMessage = 'The course with the given ID has been deleted successfully.';
-        sendResponse(res, { message: successMessage, data: course });
+        sendResponse(res, { message: 'The course with the given ID has been deleted successfully.', data: course });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 })
 

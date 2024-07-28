@@ -10,5 +10,6 @@ router.use('/movies', require('../controllers/movies'));
 router.use('/rentals', require('../controllers/rentals'));
 router.use('/users', require('../controllers/users'));
 router.use('/auth', require('../controllers/auth'));
+router.use('/authors', require('../controllers/authors'));
 
 module.exports = router;

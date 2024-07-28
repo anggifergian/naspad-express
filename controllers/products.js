@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
-const { Product, validateProduct, mapCategories, compareCategories } = require('../models/product');
+const { Product, mapCategories, compareCategories } = require('../models/product');
 const { Category } = require('../models/category');
-const { isValidID } = require('../utils/mongoose');
-const { sendResponse, modify } = require('../utils/response');
+const { sendResponse } = require('../utils/response');
 const BadRequestError = require('../errors/badRequestError');
+const validateProductMiddleware = require('../utils/validators/validateProduct');
+const validateID = require('../utils/validateID');
+const NotFoundError = require('../errors/notFoundError');
 
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
     try {
         const products = await Product
             .find()
@@ -18,46 +20,32 @@ router.get('/', async (req, res) => {
 
         sendResponse(res, { message: products.length > 0 ? 'Data found' : 'Empty list', data: products });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateID, async (req, res, next) => {
     try {
         const { id } = req['params'];
-
-        if (!isValidID(id)) {
-            const errMessage = 'Please input valid ID.';
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
 
         const product = await Product.findById(id).populate('categories', '-createdAt');
 
         if (!product) {
-            return sendResponse(res, { statusCode: 404, message: 'Data not found.' });
+            throw new NotFoundError('Data not found.');
         }
 
         sendResponse(res, { message: 'Data found.', data: product });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 });
 
-const validateProductMiddleware = (req, res, next) => {
-    const { error } = validateProduct(req['body']);
-    if (error) {
-        const errMessage = modify(error['details'][0]['message']);
-        return next(new BadRequestError(errMessage));
-    }
-
-    next();
-}
-
-router.post('/', validateProductMiddleware, async (req, res) => {
+router.post('/', validateProductMiddleware, async (req, res, next) => {
     try {
         const { title, price, imageUrl, categories: categoryIds } = req.body;
 
         const mappedCategories = mapCategories(categoryIds);
+
         const categories = await Category.find({ _id: { $in: mappedCategories } });
 
         if (!categories.length) {
@@ -84,75 +72,57 @@ router.post('/', validateProductMiddleware, async (req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validateID, validateProductMiddleware, async (req, res, next) => {
     try {
         const { id } = req['params'];
+        const { title, price, imageUrl, categories: categoryIds } = req.body;
 
-        if (!isValidID(id)) {
-            const errMessage = 'Please input valid ID.';
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
-
-        const { error } = validateProduct(req['body']);
-        if (error) {
-            const errMessage = modify(error['details'][0]['message']);
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
-
-        const mappedCategories = mapCategories(req['body']['categories']);
+        const mappedCategories = mapCategories(categoryIds);
 
         const product = await Product.findByIdAndUpdate(id,
             {
                 $set: {
-                    title: req['body']['title'],
-                    price: req['body']['price'],
-                    imageUrl: req['body']['imageUrl'],
+                    title,
+                    price,
+                    imageUrl,
                     categories: [...mappedCategories],
                 }
             },
             { new: true });
 
         if (!product) {
-            const errMessage = 'The product with the given ID was not found.';
-            return sendResponse(res, { statusCode: 404, message: errMessage });
+            throw new NotFoundError('The product with the given ID was not found.');
         }
 
-        sendResponse(res, { message: 'Data updated', data: product, });
+        sendResponse(res, { message: 'Data updated', data: product });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 });
 
-router.delete('/', async (req, res) => {
+router.delete('/', async (req, res, next) => {
     try {
         const product = await Product.deleteMany();
 
         sendResponse(res, { message: 'Successfully deleted ' + product.deletedCount + ' data(s).' });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', validateID, async (req, res, next) => {
     try {
         const { id } = req.params;
-
-        if (!isValidID(id)) {
-            const errMessage = 'Please input valid ID.';
-            return sendResponse(res, { statusCode: 400, message: errMessage });
-        }
 
         const product = await Product.findByIdAndRemove(id);
 
         if (!product) {
-            const errMessage = 'The product with the given ID was not found.';
-            return sendResponse(res, { statusCode: 404, message: errMessage });
+            throw new NotFoundError('The product with the given ID was not found.');
         }
 
-        const successMessage = 'The product with the given ID has been deleted successfully.';
-        sendResponse(res, { message: successMessage, data: product });
+        sendResponse(res, { message: 'The product with the given ID has been deleted successfully.', data: product });
     } catch (error) {
-        sendResponse(res, { statusCode: 500, message: error['message'] });
+        next(error);
     }
 });
 
